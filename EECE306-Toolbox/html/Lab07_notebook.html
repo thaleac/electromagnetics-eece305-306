@@ -1,0 +1,538 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>EECE 306 Lab 7 notebook. Writing Your Own Poisson Solver</title>
+<meta name="generator" content="MATLAB 25.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2026-10-14">
+<meta name="DC.source" content="Lab07_notebook.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<h1>EECE 306 Lab 7 notebook. Writing Your Own Poisson Solver</h1>
+<!--introduction-->
+<p>
+<b>Team 8.</b> Thalea Collymore, Kroix Jones, Xavier Moore</p>
+<!--/introduction-->
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#1">Setup</a>
+</li>
+<li>
+<a href="#2">Manufactured solution and convergence</a>
+</li>
+<li>
+<a href="#3">Three iterative methods</a>
+</li>
+<li>
+<a href="#4">Omega scan on two grids</a>
+</li>
+<li>
+<a href="#5">Timing, iterative against direct</a>
+</li>
+<li>
+<a href="#6">Interpretation</a>
+</li>
+<li>
+<a href="#7">Problems encountered</a>
+</li>
+<li>
+<a href="#8">Full test suite</a>
+</li>
+</ul>
+</div>
+<h2 id="1">Setup</h2>
+<pre class="codeinput">clear; close <span class="string">all</span>;
+e0 = em.const.eps0();
+
+Vex = @(X,Y) sin(pi*X).*sin(pi*Y);
+rho = em.test.mms2d(Vex, 1);
+</pre>
+<h2 id="2">Manufactured solution and convergence</h2>
+<pre class="codeinput">n = 101;
+G = em.solve.grid2d([0 1], [0 1], n, n);
+mask = false(n,n);
+mask([1 end],:) = true;
+mask(:,[1 end]) = true;
+
+V = em.solve.poisson2d(G, rho, 1, mask, zeros(n,n), <span class="keyword">...</span>
+    struct(<span class="string">'method'</span>,<span class="string">'direct'</span>));
+
+err101 = max(abs(V(:) - Vex(G.X(:),G.Y(:))));
+fprintf(<span class="string">'MMS max error on the 101 x 101 grid = %.3e\n'</span>, err101);
+
+Ns = [21 41 81 161]';
+errs = zeros(size(Ns));
+
+<span class="keyword">for</span> j = 1:numel(Ns)
+    n = Ns(j);
+    Gn = em.solve.grid2d([0 1], [0 1], n, n);
+    mk = false(n,n);
+    mk([1 end],:) = true;
+    mk(:,[1 end]) = true;
+
+    Vn = em.solve.poisson2d(Gn, rho, 1, mk, zeros(n,n), <span class="keyword">...</span>
+        struct(<span class="string">'method'</span>,<span class="string">'direct'</span>));
+
+    errs(j) = max(abs(Vn(:) - Vex(Gn.X(:),Gn.Y(:))));
+<span class="keyword">end</span>
+
+disp(table(Ns, errs, <span class="string">'VariableNames'</span>, {<span class="string">'N'</span>,<span class="string">'MaxError'</span>}));
+
+p = em.test.convergence(@(N) errs(Ns == N), Ns);
+fprintf(<span class="string">'observed order p = %.2f\n'</span>, p);
+</pre>
+<pre class="codeoutput">MMS max error on the 101 x 101 grid = 8.224e-05
+     N      MaxError 
+    ___    __________
+
+     21     0.0020587
+     41    0.00051419
+     81    0.00012851
+    161    3.2116e-05
+
+observed order p = 2.04
+</pre>
+<img vspace="5" hspace="5" src="Lab07_notebook_01.png" alt=""> <h2 id="3">Three iterative methods</h2>
+<pre class="codeinput">n = 41;
+G = em.solve.grid2d([0 1], [0 1], n, n);
+mask = false(n,n);
+mask([1 end],:) = true;
+mask(:,[1 end]) = true;
+
+methods = {<span class="string">'jacobi'</span>,<span class="string">'gs'</span>,<span class="string">'sor'</span>};
+
+figure;
+hold <span class="string">on</span>
+
+<span class="keyword">for</span> k = 1:3
+    opts = struct(<span class="string">'method'</span>,methods{k}, <span class="keyword">...</span>
+        <span class="string">'tol'</span>,1e-6,<span class="string">'maxit'</span>,20000);
+
+    <span class="keyword">if</span> strcmp(methods{k},<span class="string">'sor'</span>)
+        opts.omega = 2/(1+sin(pi/(n-1)));
+    <span class="keyword">end</span>
+
+    [~,info] = em.solve.poisson2d(G, rho, 1, mask, <span class="keyword">...</span>
+        zeros(n,n), opts);
+
+    semilogy(info.resHist)
+    fprintf(<span class="string">'%-7s iterations = %d\n'</span>, <span class="keyword">...</span>
+        methods{k}, info.iter);
+<span class="keyword">end</span>
+
+grid <span class="string">on</span>
+legend(methods)
+xlabel(<span class="string">'iteration'</span>)
+ylabel(<span class="string">'residual'</span>)
+title(<span class="string">'Three iterative methods on the same 41 x 41 problem'</span>)
+</pre>
+<pre class="codeoutput">jacobi  iterations = 2604
+gs      iterations = 1415
+sor     iterations = 102
+</pre>
+<img vspace="5" hspace="5" src="Lab07_notebook_02.png" alt=""> <h2 id="4">Omega scan on two grids</h2>
+<pre class="codeinput">figure;
+hold <span class="string">on</span>
+
+<span class="keyword">for</span> n = [31 61]
+    G = em.solve.grid2d([0 1], [0 1], n, n);
+    mask = false(n,n);
+    mask([1 end],:) = true;
+    mask(:,[1 end]) = true;
+
+    omega = linspace(1.0,1.99,20);
+    iterations = zeros(size(omega));
+
+    <span class="keyword">for</span> j = 1:numel(omega)
+        [~,info] = em.solve.poisson2d(G, rho, 1, mask, <span class="keyword">...</span>
+            zeros(n,n), <span class="keyword">...</span>
+            struct(<span class="string">'method'</span>,<span class="string">'sor'</span>,<span class="string">'tol'</span>,1e-4, <span class="keyword">...</span>
+            <span class="string">'maxit'</span>,20000,<span class="string">'omega'</span>,omega(j)));
+
+        iterations(j) = info.iter;
+    <span class="keyword">end</span>
+
+    plot(omega,iterations,<span class="string">'o-'</span>)
+
+    [~,best] = min(iterations);
+    fprintf(<span class="string">'n = %d   best omega about %.2f\n'</span>, <span class="keyword">...</span>
+        n, omega(best));
+<span class="keyword">end</span>
+
+grid <span class="string">on</span>
+legend(<span class="string">'31 x 31'</span>,<span class="string">'61 x 61'</span>)
+xlabel(<span class="string">'omega'</span>)
+ylabel(<span class="string">'iterations to tolerance'</span>)
+title(<span class="string">'SOR iteration count against omega'</span>)
+</pre>
+<pre class="codeoutput">n = 31   best omega about 1.83
+n = 61   best omega about 1.89
+</pre>
+<img vspace="5" hspace="5" src="Lab07_notebook_03.png" alt=""> <h2 id="5">Timing, iterative against direct</h2>
+<pre class="codeinput">Nt = [41 61 81 101];
+td = zeros(size(Nt));
+ts = zeros(size(Nt));
+
+<span class="keyword">for</span> k = 1:numel(Nt)
+    n = Nt(k);
+
+    G = em.solve.grid2d([0 1], [0 1], n, n);
+    mask = false(n,n);
+    mask([1 end],:) = true;
+    mask(:,[1 end]) = true;
+
+    tic
+    em.solve.poisson2d(G, rho, 1, mask, zeros(n,n), <span class="keyword">...</span>
+        struct(<span class="string">'method'</span>,<span class="string">'direct'</span>));
+    td(k) = toc;
+
+    tic
+    em.solve.poisson2d(G, rho, 1, mask, zeros(n,n), <span class="keyword">...</span>
+        struct(<span class="string">'method'</span>,<span class="string">'sor'</span>,<span class="string">'tol'</span>,1e-6, <span class="keyword">...</span>
+        <span class="string">'maxit'</span>,40000, <span class="keyword">...</span>
+        <span class="string">'omega'</span>,2/(1+sin(pi/(n-1)))));
+    ts(k) = toc;
+
+    fprintf(<span class="string">'N = %d   direct %.3f s   SOR %.3f s\n'</span>, <span class="keyword">...</span>
+        n, td(k), ts(k));
+<span class="keyword">end</span>
+
+figure;
+loglog(Nt,td,<span class="string">'o-'</span>,Nt,ts,<span class="string">'s-'</span>);
+grid <span class="string">on</span>
+xlabel(<span class="string">'grid size N'</span>)
+ylabel(<span class="string">'wall time (s)'</span>)
+legend(<span class="string">'direct'</span>,<span class="string">'SOR'</span>,<span class="string">'location'</span>,<span class="string">'northwest'</span>)
+title(<span class="string">'Cost against grid size'</span>)
+
+crossIdx = find(ts &lt; td,1);
+
+<span class="keyword">if</span> isempty(crossIdx)
+    fprintf(<span class="string">'No timing crossover was observed through N = %d.\n'</span>, <span class="keyword">...</span>
+        Nt(end));
+<span class="keyword">else</span>
+    fprintf(<span class="string">'First observed timing crossover is near N = %d.\n'</span>, <span class="keyword">...</span>
+        Nt(crossIdx));
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">N = 41   direct 0.004 s   SOR 0.008 s
+N = 61   direct 0.008 s   SOR 0.023 s
+N = 81   direct 0.015 s   SOR 0.053 s
+N = 101   direct 0.024 s   SOR 0.111 s
+No timing crossover was observed through N = 101.
+</pre>
+<img vspace="5" hspace="5" src="Lab07_notebook_04.png" alt=""> <h2 id="6">Interpretation</h2>
+<p>The manufactured solution converged at about second order, which matches the five-point stencil. If the measured order had been closer to one, the first things to check would be the boundary indexing and the Neumann boundary conditions. Gauss-Seidel needed fewer sweeps than Jacobi, while SOR was faster when omega was chosen near its best value. The best omega changed as the grid became finer, showing that one value does not work best for every grid.</p>
+<h2 id="7">Problems encountered</h2>
+<p>One problem we ran into was handling the zero-derivative boundary. At first, a missing neighbor outside the grid was replaced with the boundary node itself. The solution still looked smooth, so the mistake was not obvious. We corrected it by mirroring the interior neighbor across the boundary, which gives the centered zero-derivative condition required by the solver.</p>
+<h2 id="8">Full test suite</h2>
+<pre class="codeinput">runTests
+close <span class="string">all</span>
+</pre>
+<pre class="codeoutput">
+EECE 306 toolbox test suite
+--------------------------------------------------------------
+
+eta =
+
+  376.7303
+
+  test_lab01 checks complete
+  PASS  test_lab01            0.02 s
+  test_lab02 checks complete
+  PASS  test_lab02            0.02 s
+  5000-point field evaluation: 0.0004 s
+  test_lab03 checks complete
+  PASS  test_lab03            0.02 s
+  test_lab04 checks complete
+  PASS  test_lab04            0.05 s
+  merged source: flux 5.00000000e-09 C, enclosed 5.00000000e-09 C
+  density errors at 128000 / 1024000 elements: 0.953% / 1.715% max
+  sphere / cube / closed hemisphere: 3.00000000e-09 / 3.00000000e-09 / 3.00000000e-09 C
+  sphere Gauss rel err 1.44e-11; midpoint N=960 rel err 4.46e-07
+  test_lab05 checks complete
+  PASS  test_lab05            2.53 s
+  Lab 6: max absolute map error 7.776e-04 V/m
+  max closed residual / (max|E| L) 2.473e-13
+  Square vs exact-tangent edges 4.178e-11 V
+  open midpoint errors [0.0004329 0.0001082 2.706e-05 6.764e-06] V (order 2)
+  Fixed line refinement 4.965e-06 V
+  growing line potentials 25.9495 -&gt; 37.6527 V
+  warning verified
+  Step minimum h=3.162e-06 m, error 1.025e-11
+  default error 
+  10000 points V/grad 0.001/0.004 s
+  test_lab06 checks complete
+  PASS  test_lab06            1.10 s
+  Lab 7: MMS error 8.224e-05, order 2.042
+  Jacobi / GS / SOR iterations 1320 / 689 / 77
+  Gauss flux 2.5947e-09 C, enclosed 2.5000e-09 C
+  test_lab07 checks complete
+  PASS  test_lab07            0.30 s
+--------------------------------------------------------------
+  7 passed, 0 failed, 7 total
+  All tests passing.
+
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025b</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+%% EECE 306 Lab 7 notebook. Writing Your Own Poisson Solver
+% *Team 8.* Thalea Collymore, Kroix Jones, Xavier Moore
+
+%% Setup
+clear; close all;
+e0 = em.const.eps0();
+
+Vex = @(X,Y) sin(pi*X).*sin(pi*Y);
+rho = em.test.mms2d(Vex, 1);
+
+%% Manufactured solution and convergence
+n = 101;
+G = em.solve.grid2d([0 1], [0 1], n, n);
+mask = false(n,n);
+mask([1 end],:) = true;
+mask(:,[1 end]) = true;
+
+V = em.solve.poisson2d(G, rho, 1, mask, zeros(n,n), ...
+    struct('method','direct'));
+
+err101 = max(abs(V(:) - Vex(G.X(:),G.Y(:))));
+fprintf('MMS max error on the 101 x 101 grid = %.3e\n', err101);
+
+Ns = [21 41 81 161]';
+errs = zeros(size(Ns));
+
+for j = 1:numel(Ns)
+    n = Ns(j);
+    Gn = em.solve.grid2d([0 1], [0 1], n, n);
+    mk = false(n,n);
+    mk([1 end],:) = true;
+    mk(:,[1 end]) = true;
+
+    Vn = em.solve.poisson2d(Gn, rho, 1, mk, zeros(n,n), ...
+        struct('method','direct'));
+
+    errs(j) = max(abs(Vn(:) - Vex(Gn.X(:),Gn.Y(:))));
+end
+
+disp(table(Ns, errs, 'VariableNames', {'N','MaxError'}));
+
+p = em.test.convergence(@(N) errs(Ns == N), Ns);
+fprintf('observed order p = %.2f\n', p);
+
+%% Three iterative methods
+n = 41;
+G = em.solve.grid2d([0 1], [0 1], n, n);
+mask = false(n,n);
+mask([1 end],:) = true;
+mask(:,[1 end]) = true;
+
+methods = {'jacobi','gs','sor'};
+
+figure;
+hold on
+
+for k = 1:3
+    opts = struct('method',methods{k}, ...
+        'tol',1e-6,'maxit',20000);
+
+    if strcmp(methods{k},'sor')
+        opts.omega = 2/(1+sin(pi/(n-1)));
+    end
+
+    [~,info] = em.solve.poisson2d(G, rho, 1, mask, ...
+        zeros(n,n), opts);
+
+    semilogy(info.resHist)
+    fprintf('%-7s iterations = %d\n', ...
+        methods{k}, info.iter);
+end
+
+grid on
+legend(methods)
+xlabel('iteration')
+ylabel('residual')
+title('Three iterative methods on the same 41 x 41 problem')
+
+%% Omega scan on two grids
+figure;
+hold on
+
+for n = [31 61]
+    G = em.solve.grid2d([0 1], [0 1], n, n);
+    mask = false(n,n);
+    mask([1 end],:) = true;
+    mask(:,[1 end]) = true;
+
+    omega = linspace(1.0,1.99,20);
+    iterations = zeros(size(omega));
+
+    for j = 1:numel(omega)
+        [~,info] = em.solve.poisson2d(G, rho, 1, mask, ...
+            zeros(n,n), ...
+            struct('method','sor','tol',1e-4, ...
+            'maxit',20000,'omega',omega(j)));
+
+        iterations(j) = info.iter;
+    end
+
+    plot(omega,iterations,'o-')
+
+    [~,best] = min(iterations);
+    fprintf('n = %d   best omega about %.2f\n', ...
+        n, omega(best));
+end
+
+grid on
+legend('31 x 31','61 x 61')
+xlabel('omega')
+ylabel('iterations to tolerance')
+title('SOR iteration count against omega')
+
+%% Timing, iterative against direct
+Nt = [41 61 81 101];
+td = zeros(size(Nt));
+ts = zeros(size(Nt));
+
+for k = 1:numel(Nt)
+    n = Nt(k);
+
+    G = em.solve.grid2d([0 1], [0 1], n, n);
+    mask = false(n,n);
+    mask([1 end],:) = true;
+    mask(:,[1 end]) = true;
+
+    tic
+    em.solve.poisson2d(G, rho, 1, mask, zeros(n,n), ...
+        struct('method','direct'));
+    td(k) = toc;
+
+    tic
+    em.solve.poisson2d(G, rho, 1, mask, zeros(n,n), ...
+        struct('method','sor','tol',1e-6, ...
+        'maxit',40000, ...
+        'omega',2/(1+sin(pi/(n-1)))));
+    ts(k) = toc;
+
+    fprintf('N = %d   direct %.3f s   SOR %.3f s\n', ...
+        n, td(k), ts(k));
+end
+
+figure;
+loglog(Nt,td,'o-',Nt,ts,'s-');
+grid on
+xlabel('grid size N')
+ylabel('wall time (s)')
+legend('direct','SOR','location','northwest')
+title('Cost against grid size')
+
+crossIdx = find(ts < td,1);
+
+if isempty(crossIdx)
+    fprintf('No timing crossover was observed through N = %d.\n', ...
+        Nt(end));
+else
+    fprintf('First observed timing crossover is near N = %d.\n', ...
+        Nt(crossIdx));
+end
+
+%% Interpretation
+% The manufactured solution converged at about second order, which matches
+% the five-point stencil. If the measured order had been closer to one, the
+% first things to check would be the boundary indexing and the Neumann
+% boundary conditions. Gauss-Seidel needed fewer sweeps than Jacobi, while
+% SOR was faster when omega was chosen near its best value. The best omega
+% changed as the grid became finer, showing that one value does not work
+% best for every grid.
+
+%% Problems encountered
+% One problem we ran into was handling the zero-derivative boundary. At
+% first, a missing neighbor outside the grid was replaced with the boundary
+% node itself. The solution still looked smooth, so the mistake was not
+% obvious. We corrected it by mirroring the interior neighbor across the
+% boundary, which gives the centered zero-derivative condition required by
+% the solver.
+
+%% Full test suite
+runTests
+close all
+##### SOURCE END #####
+-->
+</body>
+</html>
