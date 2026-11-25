@@ -1,5 +1,7 @@
 function S = lab10_studies()
 %LAB10_STUDIES Evaluate the shared Lab 10 experiments without plotting.
+%   Lab10_notebook displays these results, and test_lab10 checks them
+%   against the expected values. Run either caller from the toolbox root.
 I = 1; a = 0.5; b = 1; c = 1.3; spacing = 0.1;
 [gx,gy] = meshgrid((-13:13)*spacing);
 % Test membership with integer grid indices to keep the edges symmetric.
