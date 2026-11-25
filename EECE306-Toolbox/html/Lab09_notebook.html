@@ -1,0 +1,758 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>EECE 306 Lab 9 notebook. Current Sources and the Biot-Savart Law</title>
+<meta name="generator" content="MATLAB 25.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2026-11-04">
+<meta name="DC.source" content="Lab09_notebook.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<h1>EECE 306 Lab 9 notebook. Current Sources and the Biot-Savart Law</h1>
+<!--introduction-->
+<p>
+<b>Team 8.</b> Thalea Collymore, Kroix Jones, Xavier Moore</p>
+<p>Run <tt>publish('Lab09_notebook.m')</tt> from the toolbox root, then print the HTML to PDF.</p>
+<!--/introduction-->
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#1">Setup</a>
+</li>
+<li>
+<a href="#2">How long em.field.H took</a>
+</li>
+<li>
+<a href="#3">Circular loop against the closed form</a>
+</li>
+<li>
+<a href="#4">Finite segment against the infinite wire</a>
+</li>
+<li>
+<a href="#5">Solenoid aspect-ratio study</a>
+</li>
+<li>
+<a href="#6">Solenoid axial profile</a>
+</li>
+<li>
+<a href="#7">Reversal, linearity, and the merge policy</a>
+</li>
+<li>
+<a href="#8">Timing at N = 5000</a>
+</li>
+<li>
+<a href="#9">Interpretation</a>
+</li>
+<li>
+<a href="#10">Problems encountered</a>
+</li>
+<li>
+<a href="#11">Full test suite</a>
+</li>
+</ul>
+</div>
+<h2 id="1">Setup</h2>
+<pre class="codeinput">clear; close <span class="string">all</span>;
+</pre>
+<h2 id="2">How long em.field.H took</h2>
+<pre class="codeinput">minutes_for_H = 25;
+
+fprintf(<span class="string">'Approximate time spent writing em.field.H: %.0f minutes\n'</span>, <span class="keyword">...</span>
+    minutes_for_H);
+
+<span class="comment">% Once lineCurrent was working, em.field.H did not require a major rewrite</span>
+<span class="comment">% of the Lab 3 field engine. The displacement vector and inverse-cube</span>
+<span class="comment">% distance calculation worked the same way as they did for the electric</span>
+<span class="comment">% field. The main change was replacing the charge numerator with the cross</span>
+<span class="comment">% product between Idl and the displacement vector. We also updated</span>
+<span class="comment">% em.quad.line so it could return the curve tangent and node weights needed</span>
+<span class="comment">% by lineCurrent. A clearer note in our earlier code about where the</span>
+<span class="comment">% quadrature weight was applied would have made this part faster.</span>
+</pre>
+<pre class="codeoutput">Approximate time spent writing em.field.H: 25 minutes
+</pre>
+<h2 id="3">Circular loop against the closed form</h2>
+<pre class="codeinput">a = 1;
+I = 1;
+
+ring = @(t)[a*cos(t) a*sin(t) zeros(size(t))];
+
+sr = em.src.lineCurrent(I, ring, [0 2*pi], 400);
+
+z = linspace(0, 2, 10)';
+
+Hnum = em.field.H(sr, [zeros(10,2) z]);
+
+Href = I*a^2 ./ (2*(a^2 + z.^2).^1.5);
+
+disp(<span class="string">'    z (m)     relative error'</span>)
+disp([z abs(Hnum(:,3) - Href)./Href])
+
+Hc = em.field.H(sr, [0 0 0]);
+
+fprintf(<span class="string">'center H_z = %.6f   I over 2a = %.6f\n'</span>, <span class="keyword">...</span>
+    Hc(3), I/(2*a));
+
+fprintf([<span class="string">'transverse component at center = %.3e '</span> <span class="keyword">...</span>
+    <span class="string">'(consistent with zero)\n'</span>], hypot(Hc(1), Hc(2)));
+</pre>
+<pre class="codeoutput">    z (m)     relative error
+         0    0.0000
+    0.2222    0.0000
+    0.4444    0.0000
+    0.6667    0.0000
+    0.8889    0.0000
+    1.1111    0.0000
+    1.3333    0.0000
+    1.5556    0.0000
+    1.7778    0.0000
+    2.0000    0.0000
+
+center H_z = 0.500000   I over 2a = 0.500000
+transverse component at center = 0.000e+00 (consistent with zero)
+</pre>
+<h2 id="4">Finite segment against the infinite wire</h2>
+<p>This repeats the finite-line limit study from Lab 4 using magnetic field instead of electric field.</p>
+<pre class="codeinput">rho = 1;
+
+hor = logspace(0, 2, 15)';
+ratio = zeros(size(hor));
+
+<span class="keyword">for</span> k = 1:numel(hor)
+
+    h = hor(k) * rho;
+
+    seg = @(t)[zeros(size(t)) zeros(size(t)) t];
+
+    ss = em.src.lineCurrent(I, seg, [-h/2 h/2], 800);
+
+    Hs = em.field.H(ss, [rho 0 0]);
+
+    ratio(k) = abs(Hs(2)) / (I/(2*pi*rho));
+
+<span class="keyword">end</span>
+
+figure;
+semilogx(hor, ratio, <span class="string">'o-'</span>);
+grid <span class="string">on</span>
+
+xlabel(<span class="string">'h / rho'</span>)
+ylabel(<span class="string">'H finite over H infinite'</span>)
+title(<span class="string">'Finite segment approaching the infinite wire'</span>)
+
+iWire = find(ratio &gt; 0.99, 1);
+
+fprintf(<span class="string">'ratio first exceeds 0.99 at h/rho about %.1f\n'</span>, <span class="keyword">...</span>
+    hor(iWire));
+
+<span class="comment">% In our Lab 4 notebook, the finite line-charge study first crossed 0.99</span>
+<span class="comment">% at L/d about 19.3. The magnetic result should be close because both</span>
+<span class="comment">% element fields have the same inverse-square dependence on distance. The</span>
+<span class="comment">% distant parts of the segment therefore stop changing the result at about</span>
+<span class="comment">% the same aspect ratio.</span>
+
+lab4Threshold = 19.3;
+
+fprintf(<span class="string">'Lab 4 line-charge threshold was L/d about %.1f\n'</span>, <span class="keyword">...</span>
+    lab4Threshold);
+</pre>
+<pre class="codeoutput">ratio first exceeds 0.99 at h/rho about 19.3
+Lab 4 line-charge threshold was L/d about 19.3
+</pre>
+<img vspace="5" hspace="5" src="Lab09_notebook_01.png" alt=""> <h2 id="5">Solenoid aspect-ratio study</h2>
+<p>The height is increased while the radius and number of turns stay fixed. We compare the center field with the long-solenoid result N*I/h.</p>
+<pre class="codeinput">aS = 0.4;
+Nturns = 25;
+
+hOverA = linspace(4, 40, 19)';
+solRatio = zeros(size(hOverA));
+
+<span class="keyword">for</span> m = 1:numel(hOverA)
+
+    hTrial = hOverA(m) * aS;
+
+    zk = linspace(-hTrial/2, hTrial/2, Nturns);
+
+    srcs = cell(1, Nturns);
+
+    <span class="keyword">for</span> k = 1:Nturns
+
+        zc = zk(k);
+
+        loop = @(t)[aS*cos(t) <span class="keyword">...</span>
+                    aS*sin(t) <span class="keyword">...</span>
+                    zc*ones(size(t))];
+
+        srcs{k} = em.src.lineCurrent( <span class="keyword">...</span>
+            I, loop, [0 2*pi], 200);
+
+    <span class="keyword">end</span>
+
+    solTrial = em.src.merge(srcs{:});
+
+    H0 = em.field.H(solTrial, [0 0 0]);
+
+    solRatio(m) = H0(3) / (Nturns*I/hTrial);
+
+<span class="keyword">end</span>
+
+figure;
+plot(hOverA, solRatio, <span class="string">'o-'</span>);
+grid <span class="string">on</span>
+
+xlabel(<span class="string">'h / a'</span>)
+ylabel(<span class="string">'H center over N I / h'</span>)
+title(<span class="string">'Solenoid approaching the long-solenoid limit'</span>)
+
+iSol = find(solRatio &gt;= 0.99, 1);
+
+<span class="keyword">if</span> isempty(iSol)
+
+    fprintf([<span class="string">'The center field did not reach 0.99 of N I/h '</span> <span class="keyword">...</span>
+        <span class="string">'in the tested range.\n'</span>]);
+
+    hS = hOverA(end) * aS;
+
+<span class="keyword">else</span>
+
+    fprintf([<span class="string">'center field first reaches 0.99 of N I/h '</span> <span class="keyword">...</span>
+        <span class="string">'at h/a about %.1f\n'</span>], hOverA(iSol));
+
+    hS = hOverA(iSol) * aS;
+
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">center field first reaches 0.99 of N I/h at h/a about 30.0
+</pre>
+<img vspace="5" hspace="5" src="Lab09_notebook_02.png" alt=""> <h2 id="6">Solenoid axial profile</h2>
+<p>Use a long solenoid from the aspect-ratio study and look at the field from below one end to above the other.</p>
+<pre class="codeinput">zk = linspace(-hS/2, hS/2, Nturns);
+
+srcs = cell(1, Nturns);
+
+<span class="keyword">for</span> k = 1:Nturns
+
+    zc = zk(k);
+
+    loop = @(t)[aS*cos(t) <span class="keyword">...</span>
+                aS*sin(t) <span class="keyword">...</span>
+                zc*ones(size(t))];
+
+    srcs{k} = em.src.lineCurrent( <span class="keyword">...</span>
+        I, loop, [0 2*pi], 200);
+
+<span class="keyword">end</span>
+
+sol = em.src.merge(srcs{:});
+
+zax = linspace(-hS, hS, 120)';
+
+Hax = em.field.H(sol, [zeros(size(zax)) <span class="keyword">...</span>
+                       zeros(size(zax)) <span class="keyword">...</span>
+                       zax]);
+
+figure;
+plot(zax, Hax(:,3), <span class="string">'-'</span>);
+grid <span class="string">on</span>
+
+xlabel(<span class="string">'z (m)'</span>)
+ylabel(<span class="string">'H_z (A/m)'</span>)
+title(<span class="string">'Axial profile of a 25 turn solenoid'</span>)
+
+Hcen = em.field.H(sol, [0 0 0]);
+Hmouth = em.field.H(sol, [0 0 hS/2]);
+
+fprintf(<span class="string">'center H_z = %.4f   N I over h = %.4f   ratio = %.4f\n'</span>, <span class="keyword">...</span>
+    Hcen(3), Nturns*I/hS, Hcen(3)/(Nturns*I/hS));
+
+fprintf(<span class="string">'aspect ratio h/a = %.1f\n'</span>, hS/aS);
+
+fprintf(<span class="string">'field at the mouth divided by center field = %.3f\n'</span>, <span class="keyword">...</span>
+    Hmouth(3)/Hcen(3));
+</pre>
+<pre class="codeoutput">center H_z = 2.0756   N I over h = 2.0833   ratio = 0.9963
+aspect ratio h/a = 30.0
+field at the mouth divided by center field = 0.802
+</pre>
+<img vspace="5" hspace="5" src="Lab09_notebook_03.png" alt=""> <h2 id="7">Reversal, linearity, and the merge policy</h2>
+<pre class="codeinput">sneg = em.src.lineCurrent(-I, ring, [0 2*pi], 400);
+
+fprintf(<span class="string">'max |H(-I) + H(I)|  = %.3e  (reversal)\n'</span>, <span class="keyword">...</span>
+    max(em.vec.mag( <span class="keyword">...</span>
+    em.field.H(sneg, [0.3 0.2 0.5]) + <span class="keyword">...</span>
+    em.field.H(sr, [0.3 0.2 0.5]))));
+
+s2I = em.src.lineCurrent(2*I, ring, [0 2*pi], 400);
+
+fprintf(<span class="string">'max |H(2I) - 2H(I)| = %.3e  (linearity)\n'</span>, <span class="keyword">...</span>
+    max(em.vec.mag( <span class="keyword">...</span>
+    em.field.H(s2I, [0.3 0.2 0.5]) - <span class="keyword">...</span>
+    2*em.field.H(sr, [0.3 0.2 0.5]))));
+
+sm = em.src.merge(sr, s2I);
+
+fprintf([<span class="string">'merged current source element count = %d '</span> <span class="keyword">...</span>
+    <span class="string">'(sum of parts = %d)\n'</span>], <span class="keyword">...</span>
+    size(sm.pos,1), <span class="keyword">...</span>
+    size(sr.pos,1) + size(s2I.pos,1));
+
+<span class="keyword">try</span>
+
+    em.src.merge(sr, <span class="keyword">...</span>
+        em.src.pointCharge(1e-9, [0 0 0]));
+
+    disp(<span class="string">'ERROR, this line must not be reached'</span>)
+
+<span class="keyword">catch</span> err
+
+    fprintf([<span class="string">'merging current with charge correctly threw. '</span> <span class="keyword">...</span>
+        <span class="string">'%s\n'</span>], err.message);
+
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">max |H(-I) + H(I)|  = 0.000e+00  (reversal)
+max |H(2I) - 2H(I)| = 0.000e+00  (linearity)
+merged current source element count = 800 (sum of parts = 800)
+merging current with charge correctly threw. Cannot merge source s2 of type 'charge' with type 'current'.
+</pre>
+<h2 id="8">Timing at N = 5000</h2>
+<pre class="codeinput">pts = randn(5000,3) + 5;
+
+tic
+H5000 = em.field.H(sr, pts);
+t = toc;
+
+fprintf([<span class="string">'em.field.H on 5000 points took %.3f s '</span> <span class="keyword">...</span>
+    <span class="string">'(requirement, under 2 s)\n'</span>], t);
+
+fprintf(<span class="string">'returned array size = %d x %d\n'</span>, <span class="keyword">...</span>
+    size(H5000,1), size(H5000,2));
+</pre>
+<pre class="codeoutput">em.field.H on 5000 points took 0.064 s (requirement, under 2 s)
+returned array size = 5000 x 3
+</pre>
+<h2 id="9">Interpretation</h2>
+<p>The source structure from Lab 3 made the magnetic field code easier to add because every source is still stored as a list of element positions and strengths. The quadrature tools from Lab 4 also kept the geometry separate from the field calculation, so H only needed to work with Idl instead of knowing how each wire or surface was created. The finite-wire study gave a threshold close to the Lab 4 line-charge result, which is expected because the distance dependence is the same in both sums. The solenoid study also showed that the long-solenoid formula becomes a good approximation only after the height is much larger than the radius. For future interfaces, keeping the geometry and field calculation separate should make it easier to add new source types without rewriting old code.</p>
+<h2 id="10">Problems encountered</h2>
+<p>The main issue was that our original em.quad.line only returned scalar arc-length weights. That worked for charge distributions, but a current element also needs the direction of the curve. We updated em.quad.line so it can return the tangent and the original node weights while keeping its first two outputs unchanged. This let lineCurrent form Idl without calculating the same derivative a second time.</p>
+<h2 id="11">Full test suite</h2>
+<pre class="codeinput">runTests
+</pre>
+<pre class="codeoutput">
+EECE 306 toolbox test suite
+--------------------------------------------------------------
+
+eta =
+
+  376.7303
+
+  test_lab01 checks complete
+  PASS  test_lab01            0.02 s
+  test_lab02 checks complete
+  PASS  test_lab02            0.03 s
+  5000-point field evaluation: 0.0005 s
+  test_lab03 checks complete
+  PASS  test_lab03            0.03 s
+  test_lab04 checks complete
+  PASS  test_lab04            0.04 s
+  merged source: flux 5.00000000e-09 C, enclosed 5.00000000e-09 C
+  density errors at 128000 / 1024000 elements: 0.953% / 1.715% max
+  sphere / cube / closed hemisphere: 3.00000000e-09 / 3.00000000e-09 / 3.00000000e-09 C
+  sphere Gauss rel err 1.44e-11; midpoint N=960 rel err 4.46e-07
+  test_lab05 checks complete
+  PASS  test_lab05            2.04 s
+  Lab 6: max absolute map error 7.776e-04 V/m
+  max closed residual / (max|E| L) 2.473e-13
+  Square vs exact-tangent edges 4.178e-11 V
+  open midpoint errors [0.0004329 0.0001082 2.706e-05 6.764e-06] V (order 2)
+  Fixed line refinement 4.965e-06 V
+  growing line potentials 25.9495 -&gt; 37.6527 V
+  warning verified
+  Step minimum h=3.162e-06 m, error 1.025e-11
+  default error 
+  10000 points V/grad 0.001/0.003 s
+  test_lab06 checks complete
+  PASS  test_lab06            0.73 s
+  Lab 7: MMS error 8.224e-05, order 2.042
+  Jacobi / GS / SOR iterations 1320 / 689 / 77
+  Gauss flux 2.5947e-09 C, enclosed 2.5000e-09 C
+  test_lab07 checks complete
+  PASS  test_lab07            0.11 s
+  Lab 8: plate error 1.110e-16; constant-layer error 4.441e-16
+  Graded-layer orders harmonic 2.000; arithmetic 0.996
+  Coax finest error 1.373%; order 0.859
+  Voltage ratio 1.0000000000; filled ratio 3.0000000000
+  Bar R 0.01000000 ohm m; tangential E jump 3.109e-14 V/m
+  test_lab08 checks complete
+  PASS  test_lab08            1.70 s
+  Lab 9: wire h/rho 7.25, solenoid h/a 14.50
+  H on 5000 points took 0.063 s
+  test_lab09 checks complete
+  PASS  test_lab09            0.15 s
+--------------------------------------------------------------
+  9 passed, 0 failed, 9 total
+  All tests passing.
+
+</pre>
+<img vspace="5" hspace="5" src="Lab09_notebook_04.png" alt=""> <p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025b</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+%% EECE 306 Lab 9 notebook. Current Sources and the Biot-Savart Law
+% *Team 8.* Thalea Collymore, Kroix Jones, Xavier Moore
+%
+% Run |publish('Lab09_notebook.m')| from the toolbox root, then print the
+% HTML to PDF.
+
+%% Setup
+clear; close all;
+
+%% How long em.field.H took
+minutes_for_H = 25;
+
+fprintf('Approximate time spent writing em.field.H: %.0f minutes\n', ...
+    minutes_for_H);
+
+% Once lineCurrent was working, em.field.H did not require a major rewrite
+% of the Lab 3 field engine. The displacement vector and inverse-cube
+% distance calculation worked the same way as they did for the electric
+% field. The main change was replacing the charge numerator with the cross
+% product between Idl and the displacement vector. We also updated
+% em.quad.line so it could return the curve tangent and node weights needed
+% by lineCurrent. A clearer note in our earlier code about where the
+% quadrature weight was applied would have made this part faster.
+
+%% Circular loop against the closed form
+a = 1;
+I = 1;
+
+ring = @(t)[a*cos(t) a*sin(t) zeros(size(t))];
+
+sr = em.src.lineCurrent(I, ring, [0 2*pi], 400);
+
+z = linspace(0, 2, 10)';
+
+Hnum = em.field.H(sr, [zeros(10,2) z]);
+
+Href = I*a^2 ./ (2*(a^2 + z.^2).^1.5);
+
+disp('    z (m)     relative error')
+disp([z abs(Hnum(:,3) - Href)./Href])
+
+Hc = em.field.H(sr, [0 0 0]);
+
+fprintf('center H_z = %.6f   I over 2a = %.6f\n', ...
+    Hc(3), I/(2*a));
+
+fprintf(['transverse component at center = %.3e ' ...
+    '(consistent with zero)\n'], hypot(Hc(1), Hc(2)));
+
+%% Finite segment against the infinite wire
+% This repeats the finite-line limit study from Lab 4 using magnetic field
+% instead of electric field.
+
+rho = 1;
+
+hor = logspace(0, 2, 15)';
+ratio = zeros(size(hor));
+
+for k = 1:numel(hor)
+
+    h = hor(k) * rho;
+
+    seg = @(t)[zeros(size(t)) zeros(size(t)) t];
+
+    ss = em.src.lineCurrent(I, seg, [-h/2 h/2], 800);
+
+    Hs = em.field.H(ss, [rho 0 0]);
+
+    ratio(k) = abs(Hs(2)) / (I/(2*pi*rho));
+
+end
+
+figure;
+semilogx(hor, ratio, 'o-');
+grid on
+
+xlabel('h / rho')
+ylabel('H finite over H infinite')
+title('Finite segment approaching the infinite wire')
+
+iWire = find(ratio > 0.99, 1);
+
+fprintf('ratio first exceeds 0.99 at h/rho about %.1f\n', ...
+    hor(iWire));
+
+% In our Lab 4 notebook, the finite line-charge study first crossed 0.99
+% at L/d about 19.3. The magnetic result should be close because both
+% element fields have the same inverse-square dependence on distance. The
+% distant parts of the segment therefore stop changing the result at about
+% the same aspect ratio.
+
+lab4Threshold = 19.3;
+
+fprintf('Lab 4 line-charge threshold was L/d about %.1f\n', ...
+    lab4Threshold);
+
+%% Solenoid aspect-ratio study
+% The height is increased while the radius and number of turns stay fixed.
+% We compare the center field with the long-solenoid result N*I/h.
+
+aS = 0.4;
+Nturns = 25;
+
+hOverA = linspace(4, 40, 19)';
+solRatio = zeros(size(hOverA));
+
+for m = 1:numel(hOverA)
+
+    hTrial = hOverA(m) * aS;
+
+    zk = linspace(-hTrial/2, hTrial/2, Nturns);
+
+    srcs = cell(1, Nturns);
+
+    for k = 1:Nturns
+
+        zc = zk(k);
+
+        loop = @(t)[aS*cos(t) ...
+                    aS*sin(t) ...
+                    zc*ones(size(t))];
+
+        srcs{k} = em.src.lineCurrent( ...
+            I, loop, [0 2*pi], 200);
+
+    end
+
+    solTrial = em.src.merge(srcs{:});
+
+    H0 = em.field.H(solTrial, [0 0 0]);
+
+    solRatio(m) = H0(3) / (Nturns*I/hTrial);
+
+end
+
+figure;
+plot(hOverA, solRatio, 'o-');
+grid on
+
+xlabel('h / a')
+ylabel('H center over N I / h')
+title('Solenoid approaching the long-solenoid limit')
+
+iSol = find(solRatio >= 0.99, 1);
+
+if isempty(iSol)
+
+    fprintf(['The center field did not reach 0.99 of N I/h ' ...
+        'in the tested range.\n']);
+
+    hS = hOverA(end) * aS;
+
+else
+
+    fprintf(['center field first reaches 0.99 of N I/h ' ...
+        'at h/a about %.1f\n'], hOverA(iSol));
+
+    hS = hOverA(iSol) * aS;
+
+end
+
+%% Solenoid axial profile
+% Use a long solenoid from the aspect-ratio study and look at the field
+% from below one end to above the other.
+
+zk = linspace(-hS/2, hS/2, Nturns);
+
+srcs = cell(1, Nturns);
+
+for k = 1:Nturns
+
+    zc = zk(k);
+
+    loop = @(t)[aS*cos(t) ...
+                aS*sin(t) ...
+                zc*ones(size(t))];
+
+    srcs{k} = em.src.lineCurrent( ...
+        I, loop, [0 2*pi], 200);
+
+end
+
+sol = em.src.merge(srcs{:});
+
+zax = linspace(-hS, hS, 120)';
+
+Hax = em.field.H(sol, [zeros(size(zax)) ...
+                       zeros(size(zax)) ...
+                       zax]);
+
+figure;
+plot(zax, Hax(:,3), '-');
+grid on
+
+xlabel('z (m)')
+ylabel('H_z (A/m)')
+title('Axial profile of a 25 turn solenoid')
+
+Hcen = em.field.H(sol, [0 0 0]);
+Hmouth = em.field.H(sol, [0 0 hS/2]);
+
+fprintf('center H_z = %.4f   N I over h = %.4f   ratio = %.4f\n', ...
+    Hcen(3), Nturns*I/hS, Hcen(3)/(Nturns*I/hS));
+
+fprintf('aspect ratio h/a = %.1f\n', hS/aS);
+
+fprintf('field at the mouth divided by center field = %.3f\n', ...
+    Hmouth(3)/Hcen(3));
+
+%% Reversal, linearity, and the merge policy
+sneg = em.src.lineCurrent(-I, ring, [0 2*pi], 400);
+
+fprintf('max |H(-I) + H(I)|  = %.3e  (reversal)\n', ...
+    max(em.vec.mag( ...
+    em.field.H(sneg, [0.3 0.2 0.5]) + ...
+    em.field.H(sr, [0.3 0.2 0.5]))));
+
+s2I = em.src.lineCurrent(2*I, ring, [0 2*pi], 400);
+
+fprintf('max |H(2I) - 2H(I)| = %.3e  (linearity)\n', ...
+    max(em.vec.mag( ...
+    em.field.H(s2I, [0.3 0.2 0.5]) - ...
+    2*em.field.H(sr, [0.3 0.2 0.5]))));
+
+sm = em.src.merge(sr, s2I);
+
+fprintf(['merged current source element count = %d ' ...
+    '(sum of parts = %d)\n'], ...
+    size(sm.pos,1), ...
+    size(sr.pos,1) + size(s2I.pos,1));
+
+try
+
+    em.src.merge(sr, ...
+        em.src.pointCharge(1e-9, [0 0 0]));
+
+    disp('ERROR, this line must not be reached')
+
+catch err
+
+    fprintf(['merging current with charge correctly threw. ' ...
+        '%s\n'], err.message);
+
+end
+
+%% Timing at N = 5000
+pts = randn(5000,3) + 5;
+
+tic
+H5000 = em.field.H(sr, pts);
+t = toc;
+
+fprintf(['em.field.H on 5000 points took %.3f s ' ...
+    '(requirement, under 2 s)\n'], t);
+
+fprintf('returned array size = %d x %d\n', ...
+    size(H5000,1), size(H5000,2));
+
+%% Interpretation
+% The source structure from Lab 3 made the magnetic field code easier to
+% add because every source is still stored as a list of element positions
+% and strengths. The quadrature tools from Lab 4 also kept the geometry
+% separate from the field calculation, so H only needed to work with Idl
+% instead of knowing how each wire or surface was created. The finite-wire
+% study gave a threshold close to the Lab 4 line-charge result, which is
+% expected because the distance dependence is the same in both sums. The
+% solenoid study also showed that the long-solenoid formula becomes a good
+% approximation only after the height is much larger than the radius. For
+% future interfaces, keeping the geometry and field calculation separate
+% should make it easier to add new source types without rewriting old code.
+
+%% Problems encountered
+% The main issue was that our original em.quad.line only returned scalar
+% arc-length weights. That worked for charge distributions, but a current
+% element also needs the direction of the curve. We updated em.quad.line
+% so it can return the tangent and the original node weights while keeping
+% its first two outputs unchanged. This let lineCurrent form Idl without
+% calculating the same derivative a second time.
+
+%% Full test suite
+runTests
+##### SOURCE END #####
+-->
+</body>
+</html>
