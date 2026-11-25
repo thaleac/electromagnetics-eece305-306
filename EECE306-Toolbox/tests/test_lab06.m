@@ -17,7 +17,7 @@ gexact=[3*p(:,1).^2+7*p(:,2),6*p(:,2).^2+7*p(:,1),9*p(:,3).^2];
 a=em.op.grad(fpoly,p,0.02)-gexact; b=em.op.grad(fpoly,p,0.01)-gexact;
 em.test.assertClose(a,repmat([1 2 3]*0.02^2,3,1),1e-7,'central truncation');
 em.test.assertClose(a./b,4,1e-6,'second order');
-assert(max(abs(em.op.grad(fpoly,p)-gexact),[],'all')<2e-8);
+assert(norm(reshape(em.op.grad(fpoly,p)-gexact,[],1),inf)<2e-8);
 assert(isequal(size(em.op.grad(fpoly,zeros(0,3))),[0 3]));
 q=@(t) 2*t/pi;
 square=@(t) [-1+2*min(q(t),1)-2*min(max(q(t)-2,0),1), ...
@@ -25,7 +25,7 @@ square=@(t) [-1+2*min(q(t),1)-2*min(max(q(t)-2,0),1), ...
 loops={@(t) [2*cos(t) 2*sin(t) zeros(size(t))],square, ...
     @(t) [1.5+0.5*cos(t) 0.5*sin(3*t) 0.3*sin(t)]};
 vertices=[-1 -1 0;1 -1 0;1 1 0;-1 1 0;-1 -1 0];
-assert(max(abs(square((0:4)'*pi/2)-vertices),[],'all')<1e-14);
+assert(norm(reshape(square((0:4)'*pi/2)-vertices,[],1),inf)<1e-14);
 [~,ww]=em.quad.line(square,[0 2*pi],400);
 assert(abs(sum(ww)-8)<1e-8);
 for k=1:3, assert(norm(loops{k}(0)-loops{k}(2*pi))<1e-14); end
